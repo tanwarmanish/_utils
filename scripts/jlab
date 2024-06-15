@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# vars
+PORT=$1
+IMAGE_NAME="jlab"
+IMAGE_EXISTS=`docker images | grep ${IMAGE_NAME}`
+
+# port
+if [ "$1" == "" ]; then
+	echo "TRUE"
+	PORT=8888
+fi
+
+# Build if doesn't exist
+if [ "$IMAGE_EXISTS" == "" ]; then
+	DOCKER_FILE_PATH=$(dirname $0)/../images/${IMAGE_NAME}
+	# BUILD
+	docker build -t ${IMAGE_NAME} -f ${DOCKER_FILE_PATH} .
+fi
+
+# Stop container if running
+if [ "$(docker ps -a | grep ${IMAGE_NAME})" != "" ]; then
+	if [ "$(docker ps -a | grep ${IMAGE_NAME}_${PORT})" != "" ]; then
+		# start existing
+		echo "Restarting Container @"${PORT}
+		docker start ${IMAGE_NAME}_${PORT}
+	else
+		# start new
+		# remove existing
+		echo "Running New Container @"${PORT}
+		docker run -d -p ${PORT}:8888 -v ${IMAGE_NAME}:/usr/bin --mount src=${PWD},target=/home,type=bind --name ${IMAGE_NAME}_${PORT} ${IMAGE_NAME}
+	fi
+else
+		echo "Running New Container @"${PORT}
+		docker run -d -p ${PORT}:8888 -v ${IMAGE_NAME}:/usr/bin --mount src=${PWD},target=/home,type=bind --name ${IMAGE_NAME}_${PORT} ${IMAGE_NAME}
+fi
+

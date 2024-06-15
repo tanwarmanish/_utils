@@ -1,0 +1,11 @@
+FROM debian
+RUN apt-get update
+RUN apt-get install -y python3-pip
+RUN apt-get install -y python3-venv
+
+ENV PORT=8888
+EXPOSE $PORT
+WORKDIR /home
+
+RUN pip install  --break-system-packages --user notebook
+CMD python3 -m notebook --allow-root --ip='*' --NotebookApp.token='' --NotebookApp.password='' .
